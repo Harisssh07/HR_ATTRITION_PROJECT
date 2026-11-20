@@ -1,0 +1,48 @@
+{
+  "best_model": "Random Forest",
+  "threshold": 0.5000000000000002,
+  "best_params": {
+    "Logistic Regression": "{'clf__C': 3}",
+    "Decision Tree": "{'clf__max_depth': 4, 'clf__min_samples_leaf': 40}",
+    "Random Forest": "{'clf__max_depth': 10, 'clf__max_features': 'sqrt', 'clf__min_samples_leaf': 8, 'clf__n_estimators': 300}"
+  },
+  "test_metrics_at_0.5": {
+    "Logistic Regression": {
+      "Accuracy": 0.66,
+      "Precision": 0.273,
+      "Recall": 0.733,
+      "F1-Score": 0.398,
+      "ROC-AUC": 0.75,
+      "CV F1 (train)": 0.434
+    },
+    "Decision Tree": {
+      "Accuracy": 0.69,
+      "Precision": 0.283,
+      "Recall": 0.667,
+      "F1-Score": 0.397,
+      "ROC-AUC": 0.732,
+      "CV F1 (train)": 0.371
+    },
+    "Random Forest": {
+      "Accuracy": 0.796,
+      "Precision": 0.385,
+      "Recall": 0.556,
+      "F1-Score": 0.455,
+      "ROC-AUC": 0.81,
+      "CV F1 (train)": 0.444
+    }
+  },
+  "test_metrics_tuned": {
+    "Accuracy": 0.796,
+    "Precision": 0.385,
+    "Recall": 0.556,
+    "F1-Score": 0.455,
+    "ROC-AUC": 0.81
+  },
+  "oof_confusion": {
+    "True Negative": 1080,
+    "False Positive": 163,
+    "False Negative": 119,
+    "True Positive": 108
+  }
+}

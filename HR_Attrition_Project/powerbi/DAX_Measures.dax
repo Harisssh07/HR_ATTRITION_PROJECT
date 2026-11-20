@@ -1,0 +1,91 @@
+// =====================================================================================
+//  HR Analytics - Employee Attrition   |   DAX measures
+//  Data table name assumed: HR   (source: data/processed/attrition_predictions.csv)
+//  Create a dedicated empty table "_Measures" (Home > Enter Data) and add these there.
+// =====================================================================================
+
+// ---------- 1. CORE KPIs (dashboard cards) -------------------------------------------
+Total Employees = COUNTROWS ( HR )
+
+Employees Left =
+CALCULATE ( COUNTROWS ( HR ), HR[Attrition] = "Yes" )
+
+Employees Stayed = [Total Employees] - [Employees Left]
+
+Attrition Rate = DIVIDE ( [Employees Left], [Total Employees], 0 )
+
+Average Age = AVERAGE ( HR[Age] )
+
+// ---------- 2. SUPPORTING METRICS ----------------------------------------------------
+Avg Monthly Income = AVERAGE ( HR[MonthlyIncome] )
+
+Avg Experience (Years) = AVERAGE ( HR[TotalWorkingYears] )
+
+Avg Tenure (Years) = AVERAGE ( HR[YearsAtCompany] )
+
+Company Attrition Rate =
+CALCULATE ( [Attrition Rate], ALL ( HR ) )
+
+Attrition vs Company (pp) =
+( [Attrition Rate] - [Company Attrition Rate] ) * 100
+
+// Conditional-format colour: red if above company average, blue otherwise
+Attrition Colour =
+IF ( [Attrition Rate] > [Company Attrition Rate], "#E4572E", "#2E86AB" )
+
+// ---------- 3. OVERTIME IMPACT -------------------------------------------------------
+Overtime Attrition Rate =
+CALCULATE ( [Attrition Rate], HR[OverTime] = "Yes" )
+
+No-Overtime Attrition Rate =
+CALCULATE ( [Attrition Rate], HR[OverTime] = "No" )
+
+Overtime Impact (x) =
+DIVIDE ( [Overtime Attrition Rate], [No-Overtime Attrition Rate] )
+
+// ---------- 4. PREDICTED ATTRITION (ML output) ---------------------------------------
+Predicted Leavers =
+CALCULATE ( COUNTROWS ( HR ), HR[Predicted_Attrition] = "Yes" )
+
+Predicted Attrition Rate = DIVIDE ( [Predicted Leavers], [Total Employees], 0 )
+
+High Risk Employees =
+CALCULATE ( COUNTROWS ( HR ), HR[Risk_Level] = "High" )
+
+High Risk % = DIVIDE ( [High Risk Employees], [Total Employees], 0 )
+
+Avg Attrition Probability = AVERAGE ( HR[Attrition_Probability] )
+
+// Actual attrition among employees in the High-risk tier (model validation)
+High Risk Actual Attrition Rate =
+CALCULATE ( [Attrition Rate], HR[Risk_Level] = "High" )
+
+// ---------- 5. MODEL QUALITY (confusion matrix from Prediction_Outcome) ---------------
+TP = CALCULATE ( COUNTROWS ( HR ), HR[Prediction_Outcome] = "True Positive" )
+TN = CALCULATE ( COUNTROWS ( HR ), HR[Prediction_Outcome] = "True Negative" )
+FP = CALCULATE ( COUNTROWS ( HR ), HR[Prediction_Outcome] = "False Positive" )
+FN = CALCULATE ( COUNTROWS ( HR ), HR[Prediction_Outcome] = "False Negative" )
+
+Model Accuracy  = DIVIDE ( [TP] + [TN], [TP] + [TN] + [FP] + [FN] )
+Model Precision = DIVIDE ( [TP], [TP] + [FP] )
+Model Recall    = DIVIDE ( [TP], [TP] + [FN] )
+Model F1        = DIVIDE ( 2 * [Model Precision] * [Model Recall], [Model Precision] + [Model Recall] )
+
+// ---------- 6. OPTIONAL: COST OF ATTRITION (what-if) ---------------------------------
+// Create a What-If parameter "Replacement Cost %" (0.3 - 2.0, step 0.1, default 0.5)
+// = share of ANNUAL salary it costs to replace one employee (assumption - adjust to your firm).
+Estimated Attrition Cost =
+SUMX (
+    FILTER ( HR, HR[Attrition] = "Yes" ),
+    HR[MonthlyIncome] * 12 * 'Replacement Cost %'[Replacement Cost % Value]
+)
+
+Estimated Cost - High Risk Employees =
+SUMX (
+    FILTER ( HR, HR[Risk_Level] = "High" ),
+    HR[MonthlyIncome] * 12 * 'Replacement Cost %'[Replacement Cost % Value]
+)
+
+// ---------- 7. DYNAMIC TITLES -------------------------------------------------------
+Title - Attrition by Department =
+"Attrition rate by department  |  company avg " & FORMAT ( [Company Attrition Rate], "0.0%" )
